@@ -1,0 +1,157 @@
+<div class="board-toolbar">
+  <button type="button" class="btn btn-ghost" id="weekly-report-btn"
+    hx-get="{% url 'tasks:weekly_report' %}"
+    hx-target="#weekly-modal-body"
+    hx-swap="innerHTML">
+    Resumen de la semana
+  </button>
+</div>
+<div class="tasks-grid">
+  <div>
+    <div class="cal-nav">
+      <h2>{{ selected_date|date:"F Y"|capfirst }}</h2>
+      <div class="cal-nav-btns">
+        <button type="button"
+          class="btn btn-ghost"
+          hx-get="{% url 'tasks:board_partial' %}?year={{ prev_year }}&month={{ prev_month }}&day=1"
+          hx-target="#task-board"
+          hx-swap="innerHTML"
+          aria-label="Mes anterior">←</button>
+        <button type="button"
+          class="btn btn-ghost"
+          hx-get="{% url 'tasks:board_partial' %}?year={{ next_year }}&month={{ next_month }}&day=1"
+          hx-target="#task-board"
+          hx-swap="innerHTML"
+          aria-label="Mes siguiente">→</button>
+      </div>
+    </div>
+    <p style="margin: 0 0 0.75rem; font-size: 0.85rem; color: var(--muted);">
+      {{ month_task_count }} {% if month_task_count == 1 %}tarea{% else %}tareas{% endif %} este mes
+    </p>
+    <table class="cal-table" aria-label="Calendario mensual">
+      <thead>
+        <tr>
+          <th>Lun</th>
+          <th>Mar</th>
+          <th>Mié</th>
+          <th>Jue</th>
+          <th>Vie</th>
+          <th>Sáb</th>
+          <th>Dom</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for week in weeks %}
+        <tr>
+          {% for cell in week %}
+          <td>
+            <button type="button"
+              class="cal-day {% if cell.month != month %}is-out{% endif %} {% if cell == selected_date %}is-selected{% endif %}"
+              hx-get="{% url 'tasks:board_partial' %}?year={{ cell.year }}&month={{ cell.month }}&day={{ cell.day }}"
+              hx-target="#task-board"
+              hx-swap="innerHTML">
+              {{ cell.day }}
+              {% if cell|date:"Y-m-d" in days_with_tasks %}
+                <span class="dot" aria-hidden="true"></span>
+              {% endif %}
+            </button>
+          </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div>
+    <div id="task-edit-pane"></div>
+
+    <h2 style="font-size: 1.05rem; margin: 0 0 0.5rem;">{{ selected_date|date:"l j F Y"|capfirst }}</h2>
+    <p style="margin: 0 0 1rem; font-size: 0.9rem; color: var(--muted);">
+      Tareas con fecha en este día
+    </p>
+
+    {% if day_tasks %}
+      <ul class="task-list">
+        {% for task in day_tasks %}
+        <li class="task-item {% if task.completado %}is-done{% endif %}" id="task-{{ task.pk }}">
+          <div class="task-item-head">
+            <h3 class="task-title">{{ task.title }}</h3>
+            <span class="prio prio-{{ task.priority }}">{{ task.get_priority_display }}</span>
+          </div>
+          {% if task.description %}
+            <p class="task-desc">{{ task.description|linebreaksbr }}</p>
+          {% endif %}
+          <form class="task-toggle-row"
+            hx-post="{% url 'tasks:task_toggle_complete' task.pk %}?year={{ year }}&month={{ month }}&day={{ selected_date.day }}"
+            hx-target="#task-board"
+            hx-swap="innerHTML">
+            {% csrf_token %}
+            <input type="checkbox" id="toggle-{{ task.pk }}"
+              {% if task.completado %}checked{% endif %}
+              onchange="this.form.requestSubmit()"
+              aria-label="Marcar como completada">
+            <label for="toggle-{{ task.pk }}">{% if task.completado %}Completada{% else %}Pendiente{% endif %}</label>
+          </form>
+          <div class="task-actions">
+            <button type="button"
+              class="btn btn-ghost"
+              hx-get="{% url 'tasks:task_edit' task.pk %}?year={{ year }}&month={{ month }}&day={{ selected_date.day }}"
+              hx-target="#task-edit-pane"
+              hx-swap="innerHTML">Editar</button>
+            <button type="button"
+              class="btn btn-danger"
+              hx-delete="{% url 'tasks:task_delete' task.pk %}?year={{ year }}&month={{ month }}&day={{ selected_date.day }}"
+              hx-target="#task-board"
+              hx-swap="innerHTML"
+              hx-confirm="¿Eliminar esta tarea?">Eliminar</button>
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p style="color: var(--muted); margin: 0 0 1rem;">No hay tareas para este día.</p>
+    {% endif %}
+
+    <h3 style="font-size: 1rem; margin: 1.25rem 0 0.65rem;">Nueva tarea</h3>
+    <form class="create-form"
+      hx-post="{% url 'tasks:task_create' %}"
+      hx-target="#task-board"
+      hx-swap="innerHTML">
+      {% csrf_token %}
+      {% for hidden in task_form.hidden_fields %}{{ hidden }}{% endfor %}
+      {% if task_form.non_field_errors %}
+        <div class="errors">{{ task_form.non_field_errors }}</div>
+      {% endif %}
+      <div class="field">
+        {{ task_form.title.label_tag }}
+        {{ task_form.title }}
+        {{ task_form.title.errors }}
+      </div>
+      <div class="field">
+        {{ task_form.description.label_tag }}
+        {{ task_form.description }}
+        {{ task_form.description.errors }}
+      </div>
+      <div class="field">
+        {{ task_form.due_date.label_tag }}
+        {{ task_form.due_date }}
+        {{ task_form.due_date.errors }}
+      </div>
+      <div class="field">
+        {{ task_form.due_date_end.label_tag }}
+        {{ task_form.due_date_end }}
+        {% if task_form.due_date_end.help_text %}
+          <p class="helptext">{{ task_form.due_date_end.help_text }}</p>
+        {% endif %}
+        {{ task_form.due_date_end.errors }}
+      </div>
+      <div class="field">
+        {{ task_form.priority.label_tag }}
+        {{ task_form.priority }}
+        {{ task_form.priority.errors }}
+      </div>
+      <button type="submit" class="btn">Guardar tarea</button>
+    </form>
+  </div>
+</div>

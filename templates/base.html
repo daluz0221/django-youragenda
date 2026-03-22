@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}YourAgenda{% endblock %}</title>
+  {% block extra_head %}{% endblock %}
+  <style>
+    :root {
+      --bg: #0f1419;
+      --surface: #1a2332;
+      --text: #e7ecf3;
+      --muted: #8b9cb3;
+      --accent: #5b8def;
+      --accent-hover: #7aa3f5;
+      --danger: #e85d75;
+      --radius: 10px;
+      --font: system-ui, "Segoe UI", Roboto, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font);
+      background: radial-gradient(1200px 600px at 20% -10%, #1e3a5f 0%, transparent 55%),
+                  radial-gradient(900px 500px at 100% 0%, #2d1f4e 0%, transparent 50%),
+                  var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { color: var(--accent-hover); text-decoration: underline; }
+    .wrap {
+      max-width: 420px;
+      margin: 0 auto;
+      padding: 2rem 1.25rem;
+    }
+    header.nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      background: rgba(26, 35, 50, .6);
+      backdrop-filter: blur(8px);
+    }
+    header.nav .brand {
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      text-decoration: none;
+    }
+    header.nav .brand:hover { text-decoration: none; color: var(--accent); }
+    header.nav nav { display: flex; flex-wrap: wrap; gap: 0.75rem 1rem; font-size: 0.9rem; }
+    .card {
+      background: var(--surface);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: var(--radius);
+      padding: 1.75rem;
+      box-shadow: 0 12px 40px rgba(0,0,0,.35);
+    }
+    h1 {
+      font-size: 1.35rem;
+      font-weight: 600;
+      margin: 0 0 1rem;
+      letter-spacing: -0.02em;
+    }
+    .field { margin-bottom: 1rem; }
+    label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 0.35rem;
+    }
+    input[type="text"], input[type="email"], input[type="password"] {
+      width: 100%;
+      padding: 0.65rem 0.75rem;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.25);
+      color: var(--text);
+      font: inherit;
+    }
+    input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(91, 141, 239, .25);
+    }
+    .btn {
+      display: inline-block;
+      padding: 0.65rem 1.1rem;
+      border-radius: 8px;
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn:hover { background: var(--accent-hover); }
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,.2);
+      color: var(--text);
+    }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+    .errors {
+      color: var(--danger);
+      font-size: 0.9rem;
+      margin: 0 0 1rem;
+      padding: 0.75rem;
+      border-radius: 8px;
+      background: rgba(232, 93, 117, .12);
+      border: 1px solid rgba(232, 93, 117, .35);
+    }
+    .helptext { font-size: 0.8rem; color: var(--muted); margin-top: 0.25rem; }
+    .messages { list-style: none; padding: 0; margin: 0 0 1rem; }
+    .messages li {
+      padding: 0.65rem 0.75rem;
+      border-radius: 8px;
+      background: rgba(91, 141, 239, .15);
+      border: 1px solid rgba(91, 141, 239, .35);
+    }
+    .links { margin-top: 1.25rem; font-size: 0.9rem; color: var(--muted); }
+    .links a { margin-right: 0.5rem; }
+    .wrap.wide { max-width: 1100px; }
+    textarea, select, input[type="date"] {
+      width: 100%;
+      padding: 0.65rem 0.75rem;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.25);
+      color: var(--text);
+      font: inherit;
+    }
+    textarea { min-height: 5rem; resize: vertical; }
+    select { cursor: pointer; }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="{% url 'home' %}">YourAgenda</a>
+    <nav>
+      {% if user.is_authenticated %}
+        <a href="{% url 'tasks:board' %}">Tareas</a>
+        <span style="color: var(--muted);">{{ user.email }}</span>
+        <a href="{% url 'accounts:password_change' %}">Cambiar contraseña</a>
+        <form action="{% url 'accounts:logout' %}" method="post" style="display:inline;">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-ghost" style="padding:0.35rem 0.65rem;font-size:0.85rem;">Salir</button>
+        </form>
+      {% else %}
+        <a href="{% url 'accounts:login' %}">Entrar</a>
+        <a href="{% url 'accounts:register' %}">Registro</a>
+      {% endif %}
+    </nav>
+  </header>
+  <div class="wrap{% block wrap_modifiers %}{% endblock %}">
+    {% if messages %}
+      <ul class="messages">
+        {% for message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </div>
+  <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+  <script>
+    document.body.addEventListener("htmx:configRequest", function (event) {
+      var m = /^get|head|options|trace$/i;
+      if (!m.test(event.detail.verb)) {
+        event.detail.headers["X-CSRFToken"] = "{{ csrf_token }}";
+      }
+    });
+  </script>
+</body>
+</html>

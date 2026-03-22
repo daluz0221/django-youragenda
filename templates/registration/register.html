@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Registro · YourAgenda{% endblock %}
+
+{% block content %}
+<div class="card">
+  <h1>Crear cuenta</h1>
+  {% if form.non_field_errors %}
+    <div class="errors">{{ form.non_field_errors }}</div>
+  {% endif %}
+  <form method="post" action="">
+    {% csrf_token %}
+    {% for field in form %}
+      <div class="field">
+        {{ field.label_tag }}
+        {{ field }}
+        {% if field.help_text %}<p class="helptext">{{ field.help_text }}</p>{% endif %}
+        {{ field.errors }}
+      </div>
+    {% endfor %}
+    <button type="submit" class="btn">Registrarme</button>
+  </form>
+  <div class="links">
+    ¿Ya tienes cuenta? <a href="{% url 'accounts:login' %}">Entrar</a>
+  </div>
+</div>
+{% endblock %}

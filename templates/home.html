@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Inicio · YourAgenda{% endblock %}
+
+{% block content %}
+<div class="card">
+  <h1>Tu agenda y tareas</h1>
+  <p style="color: var(--muted); margin: 0;">
+    {% if user.is_authenticated %}
+      Hola, {{ user.get_full_name }}. Gestiona tus tareas y el calendario en un solo lugar.
+      <p style="margin-top: 1.25rem;">
+        <a class="btn" href="{% url 'tasks:board' %}">Ir a tareas</a>
+      </p>
+    {% else %}
+      Inicia sesión o regístrate para organizar tus tareas con calendario.
+    {% endif %}
+  </p>
+  {% if not user.is_authenticated %}
+    <p style="margin-top: 1.25rem;">
+      <a class="btn" href="{% url 'accounts:login' %}">Entrar</a>
+      <a class="btn btn-ghost" href="{% url 'accounts:register' %}" style="margin-left:0.5rem;">Crear cuenta</a>
+    </p>
+  {% endif %}
+</div>
+{% endblock %}

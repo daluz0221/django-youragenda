@@ -1,0 +1,55 @@
+<div class="weekly-report-inner">
+  <div class="weekly-nav">
+    <button type="button" class="btn btn-ghost weekly-nav-btn"
+      hx-get="{% url 'tasks:weekly_report' %}?year={{ prev_year }}&week={{ prev_week }}"
+      hx-target="#weekly-modal-body"
+      hx-swap="innerHTML"
+      aria-label="Semana anterior">←</button>
+    <span class="weekly-range">Semana {{ iso_week }} · {{ iso_year }}</span>
+    <button type="button" class="btn btn-ghost weekly-nav-btn"
+      hx-get="{% url 'tasks:weekly_report' %}?year={{ next_year }}&week={{ next_week }}"
+      hx-target="#weekly-modal-body"
+      hx-swap="innerHTML"
+      aria-label="Semana siguiente">→</button>
+  </div>
+  <p class="weekly-dates muted">
+    Del {{ week_start|date:"j F Y" }} al {{ week_end|date:"j F Y" }}
+  </p>
+  {% if total %}
+    <ul class="weekly-stats">
+      <li>
+        <strong>{{ total }}</strong>
+        {% if total == 1 %}tarea creada{% else %}tareas creadas{% endif %} esta semana
+      </li>
+      <li>
+        <strong>{{ completadas }}</strong>
+        {% if completadas == 1 %}completada{% else %}completadas{% endif %}
+        (sin eliminar)
+      </li>
+      <li>
+        <strong>{{ pendientes }}</strong>
+        {% if pendientes == 1 %}pendiente{% else %}pendientes{% endif %}
+        (sin eliminar)
+      </li>
+      <li>
+        <strong>{{ completadas_eliminadas }}</strong>
+        {% if completadas_eliminadas == 1 %}completada eliminada{% else %}completadas eliminadas{% endif %}
+      </li>
+      <li>
+        <strong>{{ pendientes_eliminadas }}</strong>
+        {% if pendientes_eliminadas == 1 %}pendiente eliminada{% else %}pendientes eliminadas{% endif %}
+      </li>
+      <li class="weekly-pct">
+        <strong>{{ porcentaje_completadas }}%</strong> completadas entre las tareas que siguen activas
+      </li>
+    </ul>
+    <p class="muted small">El total incluye tareas eliminadas creadas en esta semana; el porcentaje solo considera las que no están eliminadas.</p>
+  {% else %}
+    <p class="muted">No hubo tareas creadas en esta semana.</p>
+  {% endif %}
+  <div class="weekly-actions">
+    <button type="button" class="btn btn-ghost" onclick="document.getElementById('weekly-dialog').close()">
+      Cerrar
+    </button>
+  </div>
+</div>

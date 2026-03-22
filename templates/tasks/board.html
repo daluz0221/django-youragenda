@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}Tareas · YourAgenda{% endblock %}
+
+{% block wrap_modifiers %} wide{% endblock %}
+
+{% block extra_head %}
+<style>
+  .tasks-layout h1 { margin-bottom: 0.35rem; }
+  .tasks-sub { color: var(--muted); font-size: 0.95rem; margin: 0 0 1.25rem; }
+  .tasks-grid {
+    display: grid;
+    gap: 1.25rem;
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 900px) {
+    .tasks-grid { grid-template-columns: minmax(280px, 360px) 1fr; align-items: start; }
+  }
+  .cal-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .cal-nav h2 { margin: 0; font-size: 1.05rem; font-weight: 600; }
+  .cal-nav-btns { display: flex; gap: 0.35rem; flex-wrap: wrap; }
+  .cal-nav-btns .btn { padding: 0.45rem 0.75rem; font-size: 0.85rem; }
+  .cal-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+    table-layout: fixed;
+  }
+  .cal-table th {
+    color: var(--muted);
+    font-weight: 600;
+    padding: 0.35rem 0;
+    text-align: center;
+  }
+  .cal-table td { padding: 2px; vertical-align: middle; }
+  .cal-day {
+    display: block;
+    width: 100%;
+    min-height: 2.35rem;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    background: rgba(0,0,0,.15);
+    color: var(--text);
+    font: inherit;
+    font-size: 0.8rem;
+    cursor: pointer;
+    position: relative;
+    padding: 0.25rem;
+  }
+  .cal-day:hover { border-color: rgba(91, 141, 239, .45); }
+  .cal-day.is-out { opacity: 0.35; }
+  .cal-day.is-selected {
+    border-color: var(--accent);
+    background: rgba(91, 141, 239, .18);
+    font-weight: 700;
+  }
+  .cal-day .dot {
+    display: block;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+    margin: 2px auto 0;
+    opacity: 0.85;
+  }
+  .task-list { margin: 0; padding: 0; list-style: none; }
+  .task-item {
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: var(--radius);
+    padding: 0.85rem 1rem;
+    margin-bottom: 0.65rem;
+    background: rgba(0,0,0,.12);
+  }
+  .task-item-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+  .task-title { margin: 0; font-size: 1rem; font-weight: 600; }
+  .task-meta { font-size: 0.8rem; color: var(--muted); margin-top: 0.35rem; }
+  .task-desc { margin: 0.5rem 0 0; font-size: 0.9rem; color: var(--muted); }
+  .prio {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.2rem 0.45rem;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,.12);
+  }
+  .prio-alta { color: #ffb4b4; border-color: rgba(232, 93, 117, .45); background: rgba(232, 93, 117, .12); }
+  .prio-media { color: #e8d5a3; border-color: rgba(232, 200, 117, .35); background: rgba(232, 200, 117, .1); }
+  .prio-baja { color: #a8c5a8; border-color: rgba(120, 180, 140, .35); background: rgba(120, 180, 140, .1); }
+  .task-actions { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.65rem; }
+  .task-actions .btn { padding: 0.35rem 0.65rem; font-size: 0.8rem; }
+  .task-actions .btn-danger {
+    background: transparent;
+    border: 1px solid rgba(232, 93, 117, .5);
+    color: #ffb4b4;
+  }
+  .task-actions .btn-danger:hover { background: rgba(232, 93, 117, .15); }
+  #task-edit-pane:empty { display: none; }
+  #task-edit-pane:not(:empty) {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    border-radius: var(--radius);
+    border: 1px solid rgba(91, 141, 239, .35);
+    background: rgba(91, 141, 239, .08);
+  }
+  .create-form .field { margin-bottom: 0.75rem; }
+  .htmx-request .btn { opacity: 0.65; pointer-events: none; }
+  .board-toolbar { margin-bottom: 1rem; display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+  .task-item.is-done { opacity: 0.72; }
+  .task-item.is-done .task-title { text-decoration: line-through; }
+  .task-toggle-row { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem; font-size: 0.85rem; color: var(--muted); }
+  .task-toggle-row input { width: auto; accent-color: var(--accent); }
+  #weekly-dialog {
+    max-width: min(92vw, 420px);
+    width: 100%;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text);
+    padding: 0;
+    box-shadow: 0 24px 60px rgba(0,0,0,.5);
+  }
+  #weekly-dialog::backdrop { background: rgba(0,0,0,.55); }
+  #weekly-modal-body { padding: 1.25rem 1.35rem; }
+  .weekly-report-inner .weekly-nav {
+    display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
+    margin-bottom: 0.75rem; flex-wrap: wrap;
+  }
+  .weekly-range { font-weight: 600; font-size: 0.95rem; }
+  .weekly-nav-btn { padding: 0.35rem 0.65rem; min-width: 2.5rem; }
+  .weekly-dates { margin: 0 0 1rem; font-size: 0.9rem; }
+  .weekly-stats { margin: 0 0 1rem; padding-left: 1.1rem; line-height: 1.6; }
+  .weekly-pct { list-style: none; margin-left: -1.1rem; margin-top: 0.5rem; font-size: 1.05rem; }
+  .weekly-actions { margin-top: 1rem; display: flex; justify-content: flex-end; }
+  .muted { color: var(--muted); }
+  .small { font-size: 0.8rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="tasks-layout">
+  <h1>Tareas y calendario</h1>
+  <p class="tasks-sub">Selecciona un día en el calendario. Solo ves tus propias tareas.</p>
+  <div id="task-board" class="card" style="padding: 1.25rem;">
+    {% include "tasks/partials/board_inner.html" %}
+  </div>
+</div>
+<dialog id="weekly-dialog" aria-label="Resumen de la semana">
+  <div id="weekly-modal-body" role="document"></div>
+</dialog>
+<script>
+  (function () {
+    document.body.addEventListener("htmx:afterSwap", function (e) {
+      if (e.detail.target && e.detail.target.id === "weekly-modal-body") {
+        var d = document.getElementById("weekly-dialog");
+        if (d && !d.open && typeof d.showModal === "function") d.showModal();
+      }
+    });
+  })();
+</script>
+{% endblock %}
