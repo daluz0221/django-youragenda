@@ -258,8 +258,10 @@ class TaskUpdateView(LoginRequiredMixin, UpdateView):
 class TaskDeleteView(LoginRequiredMixin, View):
     def delete(self, request, pk):
         task = get_object_or_404(Task, pk=pk, user=request.user)
+        reason = request.POST.get("deletion_reason", "").strip()
         task.deleted_at = timezone.now()
-        task.save(update_fields=["deleted_at", "updated_at"])
+        task.deletion_reason = reason
+        task.save(update_fields=["deleted_at", "deletion_reason", "updated_at"])
         if request.headers.get("HX-Request") == "true":
             return render(
                 request,

@@ -135,6 +135,45 @@
   }
   #weekly-dialog::backdrop { background: rgba(0,0,0,.55); }
   #weekly-modal-body { padding: 1.25rem 1.35rem; }
+  #delete-task-dialog {
+    max-width: min(92vw, 420px);
+    width: 100%;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text);
+    padding: 0;
+    box-shadow: 0 24px 60px rgba(0,0,0,.5);
+  }
+  #delete-task-dialog::backdrop { background: rgba(0,0,0,.55); }
+  .delete-dialog-inner { padding: 1.25rem 1.35rem; }
+  .delete-dialog-inner h2 { margin: 0 0 0.5rem; font-size: 1.05rem; font-weight: 600; }
+  .delete-dialog-inner .field { margin: 0.75rem 0; }
+  .delete-dialog-inner label {
+    display: block;
+    font-size: 0.85rem;
+    margin-bottom: 0.35rem;
+    color: var(--muted);
+  }
+  .delete-dialog-inner textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.5rem 0.65rem;
+    font-size: 0.9rem;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,.12);
+    background: rgba(0,0,0,.2);
+    color: var(--text);
+    resize: vertical;
+    min-height: 4rem;
+  }
+  .delete-dialog-actions {
+    margin-top: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: flex-end;
+  }
   .weekly-report-inner .weekly-nav {
     display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
     margin-bottom: 0.75rem; flex-wrap: wrap;
@@ -161,6 +200,25 @@
 <dialog id="weekly-dialog" aria-label="Resumen de la semana">
   <div id="weekly-modal-body" role="document"></div>
 </dialog>
+<dialog id="delete-task-dialog" aria-labelledby="delete-task-dialog-title">
+  <div class="delete-dialog-inner">
+    <h2 id="delete-task-dialog-title">Eliminar tarea</h2>
+    <p class="muted small" style="margin: 0 0 0.75rem;">Puedes indicar por qué la eliminas (opcional).</p>
+    <form id="delete-task-form"
+      hx-target="#task-board"
+      hx-swap="innerHTML">
+      {% csrf_token %}
+      <div class="field">
+        <label for="delete-task-reason">Motivo</label>
+        <textarea id="delete-task-reason" name="deletion_reason" rows="3" placeholder="Opcional"></textarea>
+      </div>
+      <div class="delete-dialog-actions">
+        <button type="button" class="btn btn-ghost" id="delete-task-cancel">Cancelar</button>
+        <button type="submit" class="btn btn-danger">Eliminar</button>
+      </div>
+    </form>
+  </div>
+</dialog>
 <script>
   (function () {
     document.body.addEventListener("htmx:afterSwap", function (e) {
@@ -168,6 +226,48 @@
         var d = document.getElementById("weekly-dialog");
         if (d && !d.open && typeof d.showModal === "function") d.showModal();
       }
+    });
+  })();
+  function openDeleteTaskModal(btn) {
+    var form = document.getElementById("delete-task-form");
+    var url = btn.getAttribute("data-delete-url");
+    if (!form || !url) return;
+    form.setAttribute("hx-post", url);
+    if (typeof htmx !== "undefined") htmx.process(form);
+    var ta = document.getElementById("delete-task-reason");
+    if (ta) ta.value = "";
+    var dlg = document.getElementById("delete-task-dialog");
+    if (dlg && typeof dlg.showModal === "function") dlg.showModal();
+  }
+  (function () {
+    var dlg = document.getElementById("delete-task-dialog");
+    var cancel = document.getElementById("delete-task-cancel");
+    var deleteForm = document.getElementById("delete-task-form");
+    function resetDeleteModal() {
+      var ta = document.getElementById("delete-task-reason");
+      if (ta) ta.value = "";
+    }
+    if (deleteForm) {
+      deleteForm.addEventListener("submit", function (e) {
+        if (!deleteForm.getAttribute("hx-post")) e.preventDefault();
+      });
+    }
+    if (cancel && dlg) {
+      cancel.addEventListener("click", function () {
+        dlg.close();
+      });
+    }
+    if (dlg) {
+      dlg.addEventListener("close", function () {
+        resetDeleteModal();
+      });
+    }
+    document.body.addEventListener("htmx:afterRequest", function (e) {
+      if (!e.detail.successful) return;
+      var elt = e.detail.elt;
+      var form = elt && (elt.id === "delete-task-form" ? elt : elt.closest && elt.closest("#delete-task-form"));
+      if (!form) return;
+      if (dlg) dlg.close();
     });
   })();
 </script>

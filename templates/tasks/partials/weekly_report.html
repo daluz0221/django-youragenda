@@ -19,33 +19,30 @@
     <ul class="weekly-stats">
       <li>
         <strong>{{ total }}</strong>
-        {% if total == 1 %}tarea creada{% else %}tareas creadas{% endif %} esta semana
+        {% if total == 1 %}tarea programada{% else %}tareas programadas{% endif %} para esta semana
+        <span class="muted">(fecha en el rango)</span>
       </li>
       <li>
         <strong>{{ completadas }}</strong>
         {% if completadas == 1 %}completada{% else %}completadas{% endif %}
-        (sin eliminar)
+        (activas)
       </li>
       <li>
         <strong>{{ pendientes }}</strong>
         {% if pendientes == 1 %}pendiente{% else %}pendientes{% endif %}
-        (sin eliminar)
+        (activas)
       </li>
       <li>
-        <strong>{{ completadas_eliminadas }}</strong>
-        {% if completadas_eliminadas == 1 %}completada eliminada{% else %}completadas eliminadas{% endif %}
-      </li>
-      <li>
-        <strong>{{ pendientes_eliminadas }}</strong>
-        {% if pendientes_eliminadas == 1 %}pendiente eliminada{% else %}pendientes eliminadas{% endif %}
+        <strong>{{ eliminadas }}</strong>
+        {% if eliminadas == 1 %}eliminada{% else %}eliminadas{% endif %}
       </li>
       <li class="weekly-pct">
-        <strong>{{ porcentaje_completadas }}%</strong> completadas entre las tareas que siguen activas
+        <strong>{{ porcentaje_completadas }}%</strong> completadas entre activas
       </li>
     </ul>
-    <p class="muted small">El total incluye tareas eliminadas creadas en esta semana; el porcentaje solo considera las que no están eliminadas.</p>
+    <p class="muted small">El total cuenta todas las tareas con fecha en esta semana (incluye eliminadas). El porcentaje es completadas entre completadas y pendientes activas; no incluye eliminadas.</p>
   {% else %}
-    <p class="muted">No hubo tareas creadas en esta semana.</p>
+    <p class="muted">No hay tareas con fecha programada en esta semana.</p>
   {% endif %}
   <div class="weekly-actions">
     <button type="button" class="btn btn-ghost" onclick="document.getElementById('weekly-dialog').close()">

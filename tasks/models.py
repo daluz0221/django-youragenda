@@ -28,6 +28,7 @@ class Task(models.Model):
     )
     completado = models.BooleanField(default=False)
     deleted_at = models.DateTimeField(null=True, blank=True)
+    deletion_reason = models.TextField(blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

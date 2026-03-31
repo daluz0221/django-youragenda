@@ -117,7 +117,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Default primary key field type
@@ -134,3 +134,6 @@ LOGOUT_REDIRECT_URL = "/"
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 DEFAULT_FROM_EMAIL = "YourAgenda <noreply@youragenda.local>"
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
+#sudo /opt/bitnami/apache/bin/apachectl configtest
+# sudo /opt/bitnami/ctlscript.sh restart apache

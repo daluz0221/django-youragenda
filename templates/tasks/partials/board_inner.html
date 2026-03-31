@@ -101,10 +101,8 @@
               hx-swap="innerHTML">Editar</button>
             <button type="button"
               class="btn btn-danger"
-              hx-delete="{% url 'tasks:task_delete' task.pk %}?year={{ year }}&month={{ month }}&day={{ selected_date.day }}"
-              hx-target="#task-board"
-              hx-swap="innerHTML"
-              hx-confirm="¿Eliminar esta tarea?">Eliminar</button>
+              data-delete-url="{% url 'tasks:task_delete' task.pk %}?year={{ year }}&month={{ month }}&day={{ selected_date.day }}"
+              onclick="openDeleteTaskModal(this)">Eliminar</button>
           </div>
         </li>
         {% endfor %}
